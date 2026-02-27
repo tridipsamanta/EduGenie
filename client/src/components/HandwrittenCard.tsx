@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -31,7 +32,7 @@ export function HandwrittenCard({ item, onOpen, onEdit, onDelete, onDownloadPDF,
       role="button"
       tabIndex={0}
       onClick={() => onOpen(item)}
-      onKeyDown={(event) => {
+      onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpen(item);
@@ -42,7 +43,8 @@ export function HandwrittenCard({ item, onOpen, onEdit, onDelete, onDownloadPDF,
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-bold text-lg line-clamp-2 flex-1">{item.topic}</h3>
-          <Badge className="bg-purple-100 text-purple-700">✍ Handwritten</Badge>
+          {/* If Badge does not accept className, wrap it in a span */}
+          <span className="bg-purple-100 text-purple-700 rounded px-2 py-1 text-xs font-medium"><Badge>✍ Handwritten</Badge></span>
         </div>
       </CardHeader>
 
@@ -51,14 +53,14 @@ export function HandwrittenCard({ item, onOpen, onEdit, onDelete, onDownloadPDF,
       </CardContent>
 
       <CardFooter className="pt-3 gap-2 border-t">
-        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={(event) => event.preventDefault()}>
+        <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={(event: React.MouseEvent<HTMLButtonElement>) => event.preventDefault()}>
           {new Date(item.createdAt).toLocaleDateString()}
         </Button>
         <Button
           size="sm"
           variant="ghost"
           className="text-xs"
-          onClick={(event) => {
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
             onEdit(item);
@@ -71,7 +73,7 @@ export function HandwrittenCard({ item, onOpen, onEdit, onDelete, onDownloadPDF,
           size="sm"
           variant="ghost"
           className="text-xs"
-          onClick={(event) => {
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
             onDownloadPDF(item);
@@ -85,7 +87,7 @@ export function HandwrittenCard({ item, onOpen, onEdit, onDelete, onDownloadPDF,
           size="sm"
           variant="ghost"
           className="text-red-600 hover:text-red-700 ml-auto"
-          onClick={(event) => {
+          onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
             event.preventDefault();
             event.stopPropagation();
             onDelete(item._id);
