@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Patrick+Hand&display=swap');
+
+.font-caveat {
+  font-family: 'Caveat', cursive;
+}
+
+.font-indie {
+  font-family: 'Indie Flower', cursive;
+}
+
+.font-patrick {
+  font-family: 'Patrick Hand', cursive;
+}
+
+.notebook-editor {
+  position: relative;
+  width: min(100%, 820px);
+  min-height: 1123px;
+  margin: 0 auto;
+  padding: 48px 42px 56px 72px;
+  background-color: #fffef8;
+  border: 1px solid rgba(30, 41, 59, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
+
+  background-image:
+    linear-gradient(to right, rgba(220, 38, 38, 0.36) 0 0),
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent calc(2.2rem - 1px),
+      rgba(59, 130, 246, 0.16) calc(2.2rem - 1px),
+      rgba(59, 130, 246, 0.16) 2.2rem
+    ),
+    radial-gradient(circle at 20% 20%, rgba(15, 23, 42, 0.03), transparent 50%);
+  background-size: 2px 100%, 100% 2.2rem, cover;
+  background-repeat: no-repeat, repeat, no-repeat;
+  background-position: 58px 0, 0 0, 0 0;
+
+  line-height: 2.2rem;
+  letter-spacing: 0.5px;
+  font-size: 1.28rem;
+  color: #1e3a8a;
+  caret-color: currentColor;
+  outline: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.notebook-editor h1,
+.notebook-editor h2,
+.notebook-editor p,
+.notebook-editor li {
+  margin: 0;
+  font-family: inherit;
+  line-height: 2.2rem;
+  letter-spacing: 0.5px;
+}
+
+.notebook-editor h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.notebook-editor h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+}
+
+.notebook-editor h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 0.4rem;
+}
+
+.notebook-editor strong {
+  font-weight: 700;
+}
+
+.notebook-editor ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
