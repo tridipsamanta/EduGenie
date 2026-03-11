@@ -5,6 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --port 5173 --strictPort",
+    "prebuild": "npm install",
     "build": "vite build",
     "start": "vite preview --host 0.0.0.0 --port 5001",
     "check": "tsc",
