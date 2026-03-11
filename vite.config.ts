@@ -3,6 +3,14 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+const renderExternalHostname = process.env.RENDER_EXTERNAL_HOSTNAME;
+const previewAllowedHosts = [
+  "localhost",
+  "127.0.0.1",
+  ".onrender.com",
+  ...(renderExternalHostname ? [renderExternalHostname] : []),
+];
+
 export default defineConfig({
   envDir: import.meta.dirname,
   plugins: [
@@ -44,5 +52,10 @@ export default defineConfig({
         ws: true,
       },
     },
+  },
+  preview: {
+    host: "0.0.0.0",
+    port: Number(process.env.PORT ?? 5001),
+    allowedHosts: previewAllowedHosts,
   },
 });
