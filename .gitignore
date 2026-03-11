@@ -1,8 +1,5 @@
 # Dependencies
 node_modules/
-client/node_modules/
-dist/
-build/
 backend/node_modules/
 client/node_modules/
 # Dependencies

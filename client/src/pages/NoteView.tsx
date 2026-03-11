@@ -35,47 +35,47 @@ function getSectionHeadingClass(rawText: string) {
 
   // Create a light, pastel color scheme that's eye-catching but pleasant
   if (text.includes("definition") || text.includes("what is")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-blue-100 text-blue-900 border-2 border-blue-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700";
   }
 
   if (text.includes("topic") || text.includes("concept")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-cyan-100 text-cyan-900 border-2 border-cyan-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30 text-cyan-900 dark:text-cyan-200 border border-cyan-300 dark:border-cyan-700";
   }
 
   if (text.includes("example") || text.includes("application")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-emerald-100 text-emerald-900 border-2 border-emerald-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-900 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700";
   }
 
   if (text.includes("diagram") || text.includes("flow") || text.includes("architecture")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-purple-100 text-purple-900 border-2 border-purple-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-900 dark:text-purple-200 border border-purple-300 dark:border-purple-700";
   }
 
   if (text.includes("question") || text.includes("revision") || text.includes("exam")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-amber-100 text-amber-900 border-2 border-amber-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700";
   }
 
   if (text.includes("mistake") || text.includes("common error") || text.includes("wrong")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-red-100 text-red-900 border-2 border-red-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-900 dark:text-red-200 border border-red-300 dark:border-red-700";
   }
 
   if (text.includes("important") || text.includes("key point") || text.includes("remember")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-rose-100 text-rose-900 border-2 border-rose-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-900 dark:text-rose-200 border border-rose-300 dark:border-rose-700";
   }
 
   if (text.includes("formula") || text.includes("equation") || text.includes("rule")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-indigo-100 text-indigo-900 border-2 border-indigo-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700";
   }
 
   if (text.includes("quick") || text.includes("summary") || text.includes("overview")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-teal-100 text-teal-900 border-2 border-teal-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-teal-100 dark:bg-teal-900/30 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-700";
   }
 
   if (text.includes("trick") || text.includes("mnemonic") || text.includes("memory")) {
-    return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-orange-100 text-orange-900 border-2 border-orange-300";
+    return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-200 border border-orange-300 dark:border-orange-700";
   }
 
   // Default fallback with light color
-  return "text-2xl font-bold mt-8 mb-4 px-4 py-2 rounded-lg bg-slate-100 text-slate-900 border-2 border-slate-300";
+  return "text-xl sm:text-2xl font-bold mt-6 sm:mt-8 mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700";
 }
 
 function getParagraphClass(rawText: string) {
@@ -87,10 +87,10 @@ function getParagraphClass(rawText: string) {
     text.startsWith("formula:") ||
     text.startsWith("note:")
   ) {
-    return "mb-4 px-4 py-3 rounded-lg bg-amber-100/50 border-2 border-amber-400 text-amber-950 font-medium";
+    return "mb-4 px-3 sm:px-4 py-3 rounded-lg bg-amber-100/50 dark:bg-amber-900/20 border border-amber-400 dark:border-amber-700 text-amber-950 dark:text-amber-100 font-medium";
   }
 
-  return "mb-5 leading-relaxed";
+  return "mb-4 sm:mb-5 leading-relaxed [overflow-wrap:anywhere]";
 }
 
 async function downloadNotePDF(noteTitle: string, content: string) {
@@ -389,31 +389,31 @@ export default function NoteView() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto w-full">
         {/* Header */}
-        <div className="mb-8 space-y-4">
+        <div className="mb-5 sm:mb-8 space-y-3 sm:space-y-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/notes")}
-            className="mb-4"
+            className="mb-1 sm:mb-3"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
 
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1">
               {isEditing ? (
                 <Input
                   value={draftTitle}
                   onChange={(e) => setDraftTitle(e.target.value)}
-                  className="text-2xl md:text-3xl font-bold mb-3"
+                  className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3"
                   placeholder="Note title"
                 />
               ) : (
-                <h1 className="text-4xl font-bold mb-2">{note.title}</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 leading-tight [overflow-wrap:anywhere]">{note.title}</h1>
               )}
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
                 <span>📅 {new Date(note.createdAt).toLocaleDateString()}</span>
                 <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium">
                   {note.sourceType === "ai"
@@ -427,7 +427,7 @@ export default function NoteView() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {isEditing ? (
                 <>
                   <Button
@@ -435,11 +435,12 @@ export default function NoteView() {
                     variant="outline"
                     onClick={handleCancelEdit}
                     disabled={isSaving}
+                    className="flex-1 sm:flex-none"
                   >
                     <X className="h-4 w-4 mr-1" />
                     Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
+                  <Button size="sm" onClick={handleSaveEdit} disabled={isSaving} className="flex-1 sm:flex-none">
                     {isSaving ? (
                       <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                     ) : (
@@ -449,7 +450,7 @@ export default function NoteView() {
                   </Button>
                 </>
               ) : (
-                <Button size="sm" variant="outline" onClick={handleStartEdit}>
+                <Button size="sm" variant="outline" onClick={handleStartEdit} className="flex-1 sm:flex-none">
                   <Pencil className="h-4 w-4 mr-1" />
                   Edit
                 </Button>
@@ -460,6 +461,7 @@ export default function NoteView() {
                 variant="outline"
                 onClick={handleDownloadPDF}
                 disabled={isDownloading}
+                className="flex-1 sm:flex-none"
               >
                 {isDownloading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -473,6 +475,7 @@ export default function NoteView() {
                 variant="destructive"
                 size="sm"
                 onClick={() => setShowDeleteConfirm(true)}
+                className="sm:flex-none"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -482,14 +485,9 @@ export default function NoteView() {
 
         {/* Content */}
         <Card className="p-0 overflow-hidden bg-white dark:bg-slate-950">
-          <div className="mx-auto p-12">
+          <div className="mx-auto p-4 sm:p-6 md:p-10 lg:p-12">
             <div
-              style={{
-                fontSize: "18px",
-                lineHeight: "1.8",
-                maxWidth: "800px",
-                margin: "0 auto",
-              }}
+              className="mx-auto max-w-[800px] text-[15px] sm:text-base md:text-lg leading-7 sm:leading-8 [overflow-wrap:anywhere]"
             >
               {isEditing ? (
                 <div className="space-y-4">
@@ -560,7 +558,7 @@ export default function NoteView() {
                   rehypePlugins={[rehypeHighlight]}
                   components={{
                     h1: ({ children, ...props }) => (
-                      <h1 className="text-4xl font-bold mt-4 mb-4 px-6 py-3 rounded-xl bg-indigo-100 text-indigo-900 border-2 border-indigo-300" {...props}>{children}</h1>
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mt-3 sm:mt-4 mb-3 sm:mb-4 px-3 sm:px-6 py-2 sm:py-3 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-900 dark:text-indigo-200 border border-indigo-300 dark:border-indigo-700 [overflow-wrap:anywhere]" {...props}>{children}</h1>
                     ),
                     h2: ({ children, ...props }) => {
                       const text = toPlainText(children);
@@ -587,19 +585,19 @@ export default function NoteView() {
                     p: ({ children, ...props }) => {
                       const text = toPlainText(children);
                       return (
-                        <p className={isGeneratedNote ? getParagraphClass(text) : "mb-5"} {...props}>
+                        <p className={isGeneratedNote ? getParagraphClass(text) : "mb-4 sm:mb-5 [overflow-wrap:anywhere]"} {...props}>
                           {children}
                         </p>
                       );
                     },
-                    ul: ({ children, ...props }) => <ul className="list-disc pl-8 mb-5 space-y-2" {...props}>{children}</ul>,
-                    ol: ({ children, ...props }) => <ol className="list-decimal pl-8 mb-5 space-y-2" {...props}>{children}</ol>,
+                    ul: ({ children, ...props }) => <ul className="list-disc pl-5 sm:pl-8 mb-4 sm:mb-5 space-y-2" {...props}>{children}</ul>,
+                    ol: ({ children, ...props }) => <ol className="list-decimal pl-5 sm:pl-8 mb-4 sm:mb-5 space-y-2" {...props}>{children}</ol>,
                     li: ({ children, ...props }) => <li className="leading-relaxed" {...props}>{children}</li>,
                     strong: ({ children, ...props }) => (
-                      <strong className="font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-md" {...props}>{children}</strong>
+                      <strong className="font-bold text-amber-700 dark:text-amber-200 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded-md" {...props}>{children}</strong>
                     ),
                     em: ({ children, ...props }) => (
-                      <em className="italic text-purple-700 font-semibold" {...props}>{children}</em>
+                      <em className="italic text-purple-700 dark:text-purple-300 font-semibold" {...props}>{children}</em>
                     ),
                     table: ({ children, ...props }) => (
                       <div className="overflow-x-auto my-5">
@@ -609,7 +607,7 @@ export default function NoteView() {
                     th: ({ children, ...props }) => <th className="border border-border px-3 py-2 bg-muted text-left font-bold" {...props}>{children}</th>,
                     td: ({ children, ...props }) => <td className="border border-border px-3 py-2" {...props}>{children}</td>,
                     blockquote: ({ children, ...props }) => (
-                      <blockquote className="border-l-4 border-amber-400 pl-4 italic text-amber-900 my-4 bg-amber-50 py-3 rounded-r-lg" {...props}>
+                      <blockquote className="border-l-4 border-amber-400 pl-3 sm:pl-4 italic text-amber-900 dark:text-amber-100 my-4 bg-amber-50 dark:bg-amber-900/20 py-3 rounded-r-lg" {...props}>
                         {children}
                       </blockquote>
                     ),
@@ -632,7 +630,7 @@ export default function NoteView() {
 
         {/* Source Link */}
         {note.sourceLink && (
-          <div className="mt-8 p-4 bg-secondary rounded-lg">
+          <div className="mt-6 sm:mt-8 p-3 sm:p-4 bg-secondary rounded-lg">
             <p className="text-sm text-muted-foreground mb-2">Source:</p>
             <a
               href={note.sourceLink}

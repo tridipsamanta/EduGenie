@@ -85,6 +85,9 @@ export async function GET(_request: NextRequest, { params }: Context) {
             level: course.level,
             duration: course.duration,
             description: course.description,
+            thumbnail: course.thumbnail ?? "",
+            thumbnailPositionX: course.thumbnailPositionX ?? 50,
+            thumbnailPositionY: course.thumbnailPositionY ?? 50,
           },
           chapters: chapterPayload,
           stats: {
@@ -163,6 +166,9 @@ export async function GET(_request: NextRequest, { params }: Context) {
             level: course.level,
             duration: course.duration,
             description: course.description,
+            thumbnail: course.thumbnail ?? "",
+            thumbnailPositionX: course.thumbnailPositionX ?? 50,
+            thumbnailPositionY: course.thumbnailPositionY ?? 50,
           },
           chapters: chapterPayload,
           stats: {

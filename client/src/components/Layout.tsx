@@ -26,8 +26,8 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         )}
       >
         <div
-          className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${
-            isChatPage ? "h-full py-0" : "py-8"
+          className={`max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 ${
+            isChatPage ? "h-full py-0" : "py-5 sm:py-8"
           }`}
         >
           {children}

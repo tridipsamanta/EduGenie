@@ -3,6 +3,14 @@ import connectDB from "@/lib/mongodb";
 import { Conversation } from "@/models/Conversation";
 import { Message } from "@/models/Message";
 import { isValidObjectId } from "mongoose";
+import { getNotesUserId, NOTES_GUEST_USER_ID } from "@/lib/auth";
+
+function getConversationOwnerFilter(userId: string) {
+  if (userId === NOTES_GUEST_USER_ID) {
+    return { $or: [{ userId }, { userId: { $exists: false } }] };
+  }
+  return { userId };
+}
 
 interface Params {
   params: { id: string };
@@ -10,6 +18,9 @@ interface Params {
 
 export async function GET(request: NextRequest, { params }: Params) {
   try {
+    const userId = await getNotesUserId();
+    const ownerFilter = getConversationOwnerFilter(userId);
+
     if (!isValidObjectId(params.id)) {
       return NextResponse.json({ error: "Invalid conversation ID." }, { status: 400 });
     }
@@ -21,7 +32,7 @@ export async function GET(request: NextRequest, { params }: Params) {
     const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(100, rawLimit)) : 30;
     const before = searchParams.get("before");
 
-    const conversation = await Conversation.findById(params.id).lean();
+    const conversation = await Conversation.findOne({ _id: params.id, ...ownerFilter }).lean();
     if (!conversation) {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
     }
@@ -51,6 +62,9 @@ export async function GET(request: NextRequest, { params }: Params) {
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
+    const userId = await getNotesUserId();
+    const ownerFilter = getConversationOwnerFilter(userId);
+
     if (!isValidObjectId(params.id)) {
       return NextResponse.json({ error: "Invalid conversation ID." }, { status: 400 });
     }
@@ -63,8 +77,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Title is required." }, { status: 400 });
     }
 
-    const conversation = await Conversation.findByIdAndUpdate(
-      params.id,
+    const conversation = await Conversation.findOneAndUpdate(
+      { _id: params.id, ...ownerFilter },
       { title },
       { new: true }
     ).lean();
@@ -82,17 +96,22 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
   try {
+    const userId = await getNotesUserId();
+    const ownerFilter = getConversationOwnerFilter(userId);
+
     if (!isValidObjectId(params.id)) {
       return NextResponse.json({ error: "Invalid conversation ID." }, { status: 400 });
     }
 
     await connectDB();
-    await Message.deleteMany({ conversationId: params.id });
-    const conversation = await Conversation.findByIdAndDelete(params.id).lean();
+    const conversation = await Conversation.findOne({ _id: params.id, ...ownerFilter }).lean();
 
     if (!conversation) {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
     }
+
+    await Message.deleteMany({ conversationId: params.id });
+    await Conversation.deleteOne({ _id: params.id });
 
     return NextResponse.json({ success: true });
   } catch (error) {

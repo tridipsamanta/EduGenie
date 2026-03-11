@@ -9,8 +9,7 @@ import {
   Sparkles,
   Mic,
   PenLine,
-  Menu,
-  X,
+  MoreVertical,
   ChevronLeft,
 } from "lucide-react";
 import { AccountDropdown } from "@/components/AccountDropdown";
@@ -21,7 +20,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 
 export function Sidebar() {
   const { pathname } = useLocation();
-  const { isOpen, toggle, close } = useSidebar();
+  const { isOpen, toggle } = useSidebar();
   const { user } = useUser();
 
   const navItems = [
@@ -124,14 +123,6 @@ export function Sidebar() {
           )}
         </div>
       </div>
-
-      {/* Mobile Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-10 md:hidden"
-          onClick={close}
-        />
-      )}
     </>
   );
 }
@@ -170,10 +161,17 @@ export function MobileNav() {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   return (
     <div className="md:hidden">
       {/* Top Header */}
-      <div className="fixed top-0 left-0 right-0 bg-card border-b border-border z-40 px-4 py-3 flex items-center justify-between">
+      <div className="fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between bg-transparent backdrop-blur-md border-b border-white/10">
         {/* Brand */}
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 bg-gradient-to-br from-purple-700 to-violet-800 rounded-lg flex items-center justify-center shadow-lg shadow-purple-700/20 overflow-hidden">
@@ -189,16 +187,12 @@ export function MobileNav() {
         {/* Menu Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-muted transition-colors"
+          className="p-2 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           aria-expanded={isOpen}
           aria-haspopup="true"
           title="Menu"
         >
-          {isOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          <MoreVertical className="h-6 w-6" />
         </button>
       </div>
 
@@ -213,7 +207,7 @@ export function MobileNav() {
       {/* Full-Screen Sidebar */}
       <div
         className={cn(
-          "fixed top-0 left-0 h-screen w-64 bg-card border-r border-border z-40 flex flex-col",
+          "fixed top-0 left-0 h-screen w-72 bg-card/70 backdrop-blur-xl border-r border-white/15 z-40 flex flex-col",
           "transition-transform duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -243,7 +237,7 @@ export function MobileNav() {
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                   isActive
                     ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-white/10 hover:text-foreground"
                 )}
               >
                 <item.icon

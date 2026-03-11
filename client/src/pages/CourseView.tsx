@@ -221,34 +221,45 @@ export default function CourseView() {
     setLessonNoteError("");
   }, [selectedLesson?.id]);
 
-  // Load notes from localStorage on mount and when courseId changes
   useEffect(() => {
-    if (!courseId) return;
-    try {
-      const storageKey = `course-lesson-notes:${courseId}`;
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Record<string, string>;
-        if (parsed && typeof parsed === "object") {
-          setLessonNotesByLessonId(parsed);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load lesson notes from storage:", error);
-      setLessonNotesByLessonId({});
-    }
+    setLessonNotesByLessonId({});
   }, [courseId]);
 
-  // Save notes to localStorage whenever they change
+  // Load persisted lesson note from DB when lesson changes
   useEffect(() => {
-    if (!courseId || Object.keys(lessonNotesByLessonId).length === 0) return;
-    try {
-      const storageKey = `course-lesson-notes:${courseId}`;
-      localStorage.setItem(storageKey, JSON.stringify(lessonNotesByLessonId));
-    } catch (error) {
-      console.error("Failed to save lesson notes to storage:", error);
-    }
-  }, [courseId, lessonNotesByLessonId]);
+    if (!courseId || !selectedLessonId) return;
+    if (lessonNotesByLessonId[selectedLessonId]) return;
+
+    let cancelled = false;
+
+    const loadPersistedLessonNote = async () => {
+      try {
+        const params = new URLSearchParams({ courseId, lessonId: selectedLessonId });
+        const response = await fetch(`/api/courses/lesson-note?${params.toString()}`, {
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!response.ok) return;
+
+        const data = (await response.json()) as { noteMarkdown?: string; found?: boolean };
+        if (!cancelled && data.found && data.noteMarkdown) {
+          setLessonNotesByLessonId((prev) => ({
+            ...prev,
+            [selectedLessonId]: data.noteMarkdown as string,
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load persisted lesson note:", error);
+      }
+    };
+
+    void loadPersistedLessonNote();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [courseId, selectedLessonId, lessonNotesByLessonId]);
 
   const fetchCourseDetail = async (targetCourseId: string, preferredLessonId?: string | null) => {
     setIsLoadingDetail(true);

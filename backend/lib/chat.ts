@@ -21,7 +21,41 @@ Prefer examples.
 If student asks short question → short answer.
 If concept → structured explanation.
 Never hallucinate facts.
-If unsure → say you don’t know.`;
+If unsure → say you don’t know.
+If the user asks about your identity, name, creator, owner, developer, or who built you, your first sentence must be exactly: "EduGenie created by Tridip Samanta".
+If the user asks about Tridip Samanta (who he is, details, profile, contact, or portfolio), include this exact clickable markdown link in your response: "[Tridip Samanta](https://portfolio-six-sooty-14.vercel.app/)".`;
+
+const CREATOR_MARKDOWN_LINK = "[Tridip Samanta](https://portfolio-six-sooty-14.vercel.app/)";
+
+function enforceCreatorLinkFormatting(text: string) {
+  let formatted = text;
+
+  formatted = formatted.replace(
+    /\[Tridip\s+Samanta\]\(\s*\[Tridip\s+Samanta\]\((?:https?:\/\/)?portfolio-six-sooty-14\.vercel\.app\/?\)\s*\)/gi,
+    CREATOR_MARKDOWN_LINK
+  );
+
+  formatted = formatted.replace(
+    /\[Tridip\s+Samanta\]\([^)]*\)/gi,
+    CREATOR_MARKDOWN_LINK
+  );
+
+  formatted = formatted.replace(
+    /(^|[\s>])(?:https?:\/\/)?portfolio-six-sooty-14\.vercel\.app\/?(?=$|[\s.,!?])/gi,
+    (match, prefix = "") => {
+      if (!prefix) {
+        return CREATOR_MARKDOWN_LINK;
+      }
+      return `${prefix}${CREATOR_MARKDOWN_LINK}`;
+    }
+  );
+
+  if (/tridip\s+samanta/i.test(formatted) && !/\[Tridip\s+Samanta\]\(https:\/\/portfolio-six-sooty-14\.vercel\.app\/?\)/i.test(formatted)) {
+    formatted = `${formatted.trim()} ${CREATOR_MARKDOWN_LINK}`;
+  }
+
+  return formatted;
+}
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -212,12 +246,13 @@ export async function generateAssistantResponse(contents: ReturnType<typeof buil
       temperature: 0.7,
     });
 
-    return response.choices?.[0]?.message?.content ?? "";
+    return enforceCreatorLinkFormatting(response.choices?.[0]?.message?.content ?? "");
   } catch (error) {
     console.warn("Grok chat response failed, trying Gemini fallback:", error);
     try {
       const prompt = buildGeminiPrompt(contents);
-      return await askGemini(prompt || "Please answer the user's last question.");
+      const fallback = await askGemini(prompt || "Please answer the user's last question.");
+      return enforceCreatorLinkFormatting(fallback);
     } catch (fallbackError) {
       const primary = error instanceof Error ? error.message : String(error);
       const fallback = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);

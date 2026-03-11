@@ -70,6 +70,8 @@ type ChatMessage = {
 
 const PAGE_SIZE = 30;
 const isMongoId = (value: string) => /^[a-f\d]{24}$/i.test(value);
+const isConversationMissingError = (error: unknown) =>
+  error instanceof Error && /conversation not found/i.test(error.message);
 
 const fetchJSON = async (input: RequestInfo, init?: RequestInit) => {
   const response = await fetch(input, {
@@ -206,6 +208,10 @@ export default function Chat() {
       setHasMore((data.messages ?? []).length >= PAGE_SIZE);
     } catch (error) {
       console.error("Failed to load messages:", error);
+      if (isConversationMissingError(error)) {
+        setActiveConversationId(null);
+        await loadConversations(debouncedSearch);
+      }
       setMessages([]);
       setHasMore(false);
     } finally {
@@ -394,6 +400,35 @@ export default function Chat() {
 
       await loadConversations(debouncedSearch);
     } catch (error) {
+      if (validConversationId && isConversationMissingError(error)) {
+        try {
+          setActiveConversationId(null);
+          const retry = await fetchJSON("/api/chat/send", {
+            method: "POST",
+            body: JSON.stringify({ message: trimmed }),
+          });
+
+          const retryConversationId = retry?.conversationId as string | undefined;
+          if (retryConversationId) {
+            setActiveConversationId(retryConversationId);
+          }
+
+          const retryReply = typeof retry?.reply === "string" ? retry.reply : "";
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg._id === assistantId
+                ? { ...msg, content: retryReply || "No response received.", isStreaming: false }
+                : msg
+            )
+          );
+
+          await loadConversations(debouncedSearch);
+          return;
+        } catch (retryError) {
+          error = retryError;
+        }
+      }
+
       let errorMessage = "Generation stopped. Please try again.";
       if (error instanceof Error) {
         // Show actual error message if available
@@ -891,6 +926,14 @@ export default function Chat() {
                               ol: ({ node, ...props }) => <ol className="list-decimal list-outside pl-6 mb-4 space-y-2" {...props} />,
                               blockquote: ({ node, ...props }) => (
                                 <blockquote className="border-l-4 border-purple-500 pl-4 italic text-gray-600 dark:text-gray-300 my-4" {...props} />
+                              ),
+                              a: ({ node, ...props }) => (
+                                <a
+                                  className="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  {...props}
+                                />
                               ),
                               table: ({ node, ...props }) => (
                                 <div className="overflow-x-auto my-4">

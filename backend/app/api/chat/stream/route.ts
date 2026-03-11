@@ -8,9 +8,20 @@ import {
   generateTitleFromPrompt,
 } from "@/lib/chat";
 import { isValidObjectId } from "mongoose";
+import { getNotesUserId, NOTES_GUEST_USER_ID } from "@/lib/auth";
+
+function getConversationOwnerFilter(userId: string) {
+  if (userId === NOTES_GUEST_USER_ID) {
+    return { $or: [{ userId }, { userId: { $exists: false } }] };
+  }
+  return { userId };
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getNotesUserId();
+    const ownerFilter = getConversationOwnerFilter(userId);
+
     await connectDB();
 
     const body = await request.json();
@@ -35,11 +46,16 @@ export async function POST(request: NextRequest) {
     }
 
     let conversation = conversationId
-      ? await Conversation.findById(conversationId)
-      : await Conversation.create({ title: "New Chat" });
+      ? await Conversation.findOne({ _id: conversationId, ...ownerFilter })
+      : await Conversation.create({ title: "New Chat", userId });
 
     if (!conversation) {
       return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+    }
+
+    if (!conversation.userId) {
+      conversation.userId = userId;
+      await conversation.save();
     }
 
     let prompt = message;
@@ -112,7 +128,10 @@ export async function POST(request: NextRequest) {
           if (conversation.title === "New Chat" && userCount === 1) {
             try {
               const title = await generateTitleFromPrompt(prompt);
-              await Conversation.findByIdAndUpdate(conversation._id, { title });
+              await Conversation.findOneAndUpdate(
+                { _id: conversation._id, ...ownerFilter },
+                { title }
+              );
             } catch (titleError) {
               console.warn("Chat stream title generation failed (non-blocking):", titleError);
             }

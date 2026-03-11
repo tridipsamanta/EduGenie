@@ -9,6 +9,7 @@ import { chapters, courses, lessons } from "@/lib/schema";
 import { Course } from "@/models/Course";
 import { CourseChapter } from "@/models/CourseChapter";
 import { CourseLesson } from "@/models/CourseLesson";
+import { Note } from "@/models/Note";
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
@@ -23,6 +24,54 @@ type LessonContext = {
   lessonTitle: string;
   youtubeVideoId: string;
 };
+
+function getCourseLessonSourceLink(courseId: string, lessonId: string) {
+  return `course-lesson://${courseId}/${lessonId}`;
+}
+
+async function loadStoredLessonNote(userId: string, courseId: string, lessonId: string) {
+  await connectDB();
+  return Note.findOne({
+    userId,
+    sourceType: "ai",
+    sourceLink: getCourseLessonSourceLink(courseId, lessonId),
+  })
+    .sort({ updatedAt: -1 })
+    .lean();
+}
+
+async function saveLessonNoteToDatabase(args: {
+  userId: string;
+  courseId: string;
+  lessonId: string;
+  lessonTitle: string;
+  noteMarkdown: string;
+}) {
+  const { userId, courseId, lessonId, lessonTitle, noteMarkdown } = args;
+  await connectDB();
+
+  await Note.findOneAndUpdate(
+    {
+      userId,
+      sourceType: "ai",
+      sourceLink: getCourseLessonSourceLink(courseId, lessonId),
+    },
+    {
+      $set: {
+        title: `${lessonTitle} • Lesson Notes`,
+        content: noteMarkdown,
+        summary: noteMarkdown.slice(0, 200),
+        tags: ["course-lesson-note", `course:${courseId}`, `lesson:${lessonId}`],
+      },
+      $setOnInsert: {
+        userId,
+        sourceType: "ai",
+        sourceLink: getCourseLessonSourceLink(courseId, lessonId),
+      },
+    },
+    { upsert: true, new: true }
+  );
+}
 
 async function fetchYoutubeContext(videoId: string): Promise<{
   title: string;
@@ -488,6 +537,14 @@ export async function POST(request: NextRequest) {
       noteMarkdown = buildFallbackNote(lessonContext, youtubeContext);
     }
 
+    await saveLessonNoteToDatabase({
+      userId,
+      courseId: body.courseId,
+      lessonId: body.lessonId,
+      lessonTitle: lessonContext.lessonTitle,
+      noteMarkdown,
+    });
+
     return NextResponse.json({
       lesson: {
         id: lessonContext.lessonId,
@@ -500,6 +557,33 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to generate lesson note";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const userId = await getCoursesUserId();
+    const courseId = String(request.nextUrl.searchParams.get("courseId") || "").trim();
+    const lessonId = String(request.nextUrl.searchParams.get("lessonId") || "").trim();
+
+    if (!courseId || !lessonId) {
+      return NextResponse.json({ error: "courseId and lessonId are required" }, { status: 400 });
+    }
+
+    const note = await loadStoredLessonNote(userId, courseId, lessonId);
+    if (!note) {
+      return NextResponse.json({ noteMarkdown: "", found: false }, { status: 200 });
+    }
+
+    return NextResponse.json({
+      noteMarkdown: note.content,
+      found: true,
+      noteId: String(note._id),
+      updatedAt: note.updatedAt,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to fetch lesson note";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

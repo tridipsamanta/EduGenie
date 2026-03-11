@@ -1,23 +1,22 @@
-// Gradient and badge helpers for premium card design
-const gradients = [
-  { icon: "from-violet-500 to-purple-600", bar: "from-violet-500 to-purple-600" },
-  { icon: "from-blue-500 to-indigo-600", bar: "from-blue-500 to-indigo-600" },
-  { icon: "from-emerald-500 to-teal-600", bar: "from-emerald-500 to-teal-600" },
-  { icon: "from-orange-500 to-amber-500", bar: "from-orange-500 to-amber-500" },
-  { icon: "from-pink-500 to-rose-500", bar: "from-pink-500 to-rose-500" },
-];
-function getGradient(index: number) {
-  return gradients[index % gradients.length];
-}
 function getLevelBadge(level: string) {
   if (level === "Beginner") return "bg-green-100 text-green-700";
   if (level === "Intermediate") return "bg-yellow-100 text-yellow-700";
   if (level === "Advanced") return "bg-red-100 text-red-700";
   return "bg-gray-100 text-gray-700";
 }
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+}
+
 import { Layout } from "@/components/Layout";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Brain, Clock3, GraduationCap, ImagePlus, Loader2, PlayCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -45,6 +44,9 @@ type CourseSummary = {
   level: string;
   duration: string;
   description: string;
+  thumbnail?: string;
+  thumbnailPositionX?: number;
+  thumbnailPositionY?: number;
   totalChapters: number;
   totalLessons: number;
   completedLessons: number;
@@ -58,6 +60,9 @@ type CreateFormState = {
   level: CourseLevel;
   duration: string;
   description: string;
+  thumbnail: string;
+  thumbnailPositionX: number;
+  thumbnailPositionY: number;
 };
 
 const initialFormState: CreateFormState = {
@@ -66,7 +71,36 @@ const initialFormState: CreateFormState = {
   level: "Beginner",
   duration: "8 weeks",
   description: "",
+  thumbnail: "",
+  thumbnailPositionX: 50,
+  thumbnailPositionY: 50,
 };
+
+const generationMessages = [
+  "Mapping out a learning journey tailored to your goal...",
+  "Designing chapter milestones and knowledge checkpoints...",
+  "Blending real-world practice with crisp theory lessons...",
+  "Sequencing lessons for steady momentum and quick wins...",
+  "Polishing your AI course so it feels clear, structured, and exciting...",
+];
+
+const generationSteps = [
+  {
+    title: "Planning the roadmap",
+    description: "Finding the right scope, chapter flow, and pacing.",
+    icon: Brain,
+  },
+  {
+    title: "Crafting the curriculum",
+    description: "Breaking your topic into practical lessons and milestones.",
+    icon: BookOpen,
+  },
+  {
+    title: "Preparing a smooth start",
+    description: "Finishing the course structure so you can jump in right away.",
+    icon: GraduationCap,
+  },
+];
 
 function GradientProgress({ value, heightClass = "h-1.5" }: { value: number; heightClass?: string }) {
   return (
@@ -89,6 +123,40 @@ export default function MyCourses() {
   const [deletingCourseId, setDeletingCourseId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CourseSummary | null>(null);
   const [formState, setFormState] = useState<CreateFormState>(initialFormState);
+  const [generationMessageIndex, setGenerationMessageIndex] = useState(0);
+
+  const handleThumbnailUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "Image too large",
+        description: "Please choose an image under 2MB.",
+        variant: "destructive",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setFormState((prev) => ({ ...prev, thumbnail: result, thumbnailPositionX: 50, thumbnailPositionY: 50 }));
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
 
   const totalSummary = useMemo(() => {
     const totalCourses = courses.length;
@@ -125,6 +193,19 @@ export default function MyCourses() {
     void fetchCourses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!isCreating) {
+      setGenerationMessageIndex(0);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setGenerationMessageIndex((current) => (current + 1) % generationMessages.length);
+    }, 2200);
+
+    return () => window.clearInterval(intervalId);
+  }, [isCreating]);
 
   const handleCreateCourse = async () => {
     setIsCreating(true);
@@ -201,122 +282,290 @@ export default function MyCourses() {
             </p>
           </div>
 
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <Dialog
+            open={isCreateOpen}
+            onOpenChange={(open) => {
+              if (isCreating) return;
+              setIsCreateOpen(open);
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="rounded-full px-6" size="lg">
                 <Plus className="mr-2 h-4 w-4" />
                 New Course
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl overflow-hidden border-border/50 bg-gradient-to-br from-background via-background to-muted/40 p-0 shadow-2xl shadow-black/20 backdrop-blur">
-              <div className="relative space-y-6 p-6">
-                <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
-                <div className="pointer-events-none absolute -left-20 bottom-0 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl" />
-                <DialogHeader className="space-y-3">
-                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm shadow-black/10">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    AI Curriculum Studio
-                  </div>
-                  <DialogTitle className="text-2xl font-semibold tracking-tight">Create a new course</DialogTitle>
-                  <DialogDescription className="text-sm text-muted-foreground">
-                    Share your learning goal and we will generate a structured curriculum with lessons.
-                  </DialogDescription>
-                </DialogHeader>
+            <DialogContent
+              hideCloseButton={isCreating}
+              onEscapeKeyDown={(event) => {
+                if (isCreating) event.preventDefault();
+              }}
+              onInteractOutside={(event) => {
+                if (isCreating) event.preventDefault();
+              }}
+              className="max-h-[92vh] max-w-2xl overflow-y-auto border-border/50 bg-gradient-to-br from-background via-background to-muted/40 p-0 shadow-2xl shadow-black/20 backdrop-blur"
+            >
+              {isCreating ? (
+                <div className="relative min-h-[540px] overflow-hidden px-6 py-8">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.22),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(79,70,229,0.18),transparent_30%)]" />
+                  <div className="pointer-events-none absolute -right-10 top-10 h-32 w-32 rounded-full bg-violet-500/20 blur-3xl" />
+                  <div className="pointer-events-none absolute -left-10 bottom-10 h-36 w-36 rounded-full bg-indigo-500/20 blur-3xl" />
 
-                <div className="space-y-4 rounded-2xl border border-border/60 bg-background/65 p-4 shadow-xl shadow-black/10 backdrop-blur-sm">
-                  <div className="space-y-2">
-                    <Label htmlFor="courseName" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      Course name
-                    </Label>
-                    <Input
-                      id="courseName"
-                      className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
-                      value={formState.courseName}
-                      onChange={(event) => setFormState((prev) => ({ ...prev, courseName: event.target.value }))}
-                      placeholder="Prompt engineering"
-                    />
-                  </div>
+                  <div className="relative flex min-h-[492px] flex-col justify-between">
+                    <div className="space-y-4 text-center">
+                      <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-primary shadow-sm shadow-primary/10">
+                        <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                        AI Curriculum Studio
+                      </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="chapterCount" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Chapters
-                      </Label>
-                      <Input
-                        id="chapterCount"
-                        className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
-                        type="number"
-                        min={3}
-                        max={12}
-                        value={formState.chapterCount}
-                        onChange={(event) =>
-                          setFormState((prev) => ({
-                            ...prev,
-                            chapterCount: Number(event.target.value),
-                          }))
-                        }
-                      />
+                      <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border border-primary/20 bg-background/70 shadow-2xl shadow-primary/10 backdrop-blur">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary via-purple-500 to-indigo-500 text-primary-foreground shadow-lg shadow-primary/30">
+                          <Loader2 className="h-7 w-7 animate-spin" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <DialogTitle className="text-3xl font-semibold tracking-tight">Generating your course</DialogTitle>
+                        <DialogDescription className="mx-auto max-w-xl text-base leading-7 text-muted-foreground">
+                          Sit back while the AI designs your course structure, chapters, and learning flow.
+                        </DialogDescription>
+                      </div>
+
+                      <div className="mx-auto max-w-xl rounded-3xl border border-border/60 bg-background/75 px-6 py-5 text-left shadow-xl shadow-black/10 backdrop-blur-sm">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Currently happening</p>
+                        <p className="min-h-[56px] text-lg font-medium leading-8 text-foreground transition-all duration-500">
+                          {generationMessages[generationMessageIndex]}
+                        </p>
+                        <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted/70">
+                          <div className="h-full w-1/2 animate-[pulse_1.8s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-500" />
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Level</Label>
-                      <Select
-                        value={formState.level}
-                        onValueChange={(value) => setFormState((prev) => ({ ...prev, level: value as CourseLevel }))}
-                      >
-                        <SelectTrigger className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5">
-                          <SelectValue placeholder="Select level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Beginner">Beginner</SelectItem>
-                          <SelectItem value="Intermediate">Intermediate</SelectItem>
-                          <SelectItem value="Advanced">Advanced</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="duration" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Estimated duration
-                      </Label>
-                      <Input
-                        id="duration"
-                        className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
-                        value={formState.duration}
-                        onChange={(event) => setFormState((prev) => ({ ...prev, duration: event.target.value }))}
-                        placeholder="6 weeks"
-                      />
+                    <div className="grid gap-3 md:grid-cols-3">
+                      {generationSteps.map((step, index) => {
+                        const Icon = step.icon;
+                        return (
+                          <div
+                            key={step.title}
+                            className="rounded-2xl border border-border/60 bg-background/70 p-4 shadow-lg shadow-black/5 backdrop-blur-sm"
+                            style={{ animationDelay: `${index * 180}ms` }}
+                          >
+                            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-purple-500/20 to-indigo-500/20 text-primary">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">{step.description}</p>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                      What should the course cover?
-                    </Label>
-                    <Textarea
-                      id="description"
-                      className="min-h-[120px] rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
-                      value={formState.description}
-                      onChange={(event) => setFormState((prev) => ({ ...prev, description: event.target.value }))}
-                      placeholder="Include practical projects, checkpoints, and real-world examples."
-                    />
                   </div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <div className="relative space-y-6 p-6">
+                    <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+                    <div className="pointer-events-none absolute -left-20 bottom-0 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl" />
+                    <DialogHeader className="space-y-3">
+                      <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm shadow-black/10">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        AI Curriculum Studio
+                      </div>
+                      <DialogTitle className="text-2xl font-semibold tracking-tight">Create a new course</DialogTitle>
+                      <DialogDescription className="text-sm text-muted-foreground">
+                        Share your learning goal and we will generate a structured curriculum with lessons.
+                      </DialogDescription>
+                    </DialogHeader>
 
-              <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-background/70 px-6 py-4 backdrop-blur-sm">
-                <Button variant="ghost" className="rounded-full" onClick={() => setIsCreateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  className="rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-500 px-6 text-primary-foreground shadow-lg shadow-primary/30"
-                  onClick={handleCreateCourse}
-                  disabled={isCreating}
-                >
-                  {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate with AI"}
-                </Button>
-              </div>
+                    <div className="space-y-4 rounded-2xl border border-border/60 bg-background/65 p-4 shadow-xl shadow-black/10 backdrop-blur-sm">
+                      <div className="space-y-2">
+                        <Label htmlFor="courseName" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Course name
+                        </Label>
+                        <Input
+                          id="courseName"
+                          className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
+                          value={formState.courseName}
+                          onChange={(event) => setFormState((prev) => ({ ...prev, courseName: event.target.value }))}
+                          placeholder="Prompt engineering"
+                        />
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="chapterCount" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Chapters
+                          </Label>
+                          <Input
+                            id="chapterCount"
+                            className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
+                            type="number"
+                            min={3}
+                            max={12}
+                            value={formState.chapterCount}
+                            onChange={(event) =>
+                              setFormState((prev) => ({
+                                ...prev,
+                                chapterCount: Number(event.target.value),
+                              }))
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Level</Label>
+                          <Select
+                            value={formState.level}
+                            onValueChange={(value) => setFormState((prev) => ({ ...prev, level: value as CourseLevel }))}
+                          >
+                            <SelectTrigger className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5">
+                              <SelectValue placeholder="Select level" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Beginner">Beginner</SelectItem>
+                              <SelectItem value="Intermediate">Intermediate</SelectItem>
+                              <SelectItem value="Advanced">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="duration" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                            Estimated duration
+                          </Label>
+                          <Input
+                            id="duration"
+                            className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
+                            value={formState.duration}
+                            onChange={(event) => setFormState((prev) => ({ ...prev, duration: event.target.value }))}
+                            placeholder="6 weeks"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="thumbnail" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Course thumbnail
+                        </Label>
+                        <Input
+                          id="thumbnail"
+                          className="h-11 rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
+                          value={formState.thumbnail}
+                          onChange={(event) => setFormState((prev) => ({ ...prev, thumbnail: event.target.value }))}
+                          placeholder="https://example.com/cover.jpg"
+                        />
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Label
+                            htmlFor="thumbnailUpload"
+                            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted/40"
+                          >
+                            <ImagePlus className="h-3.5 w-3.5" />
+                            Upload image
+                          </Label>
+                          <Input id="thumbnailUpload" type="file" accept="image/*" className="hidden" onChange={handleThumbnailUpload} />
+                          {formState.thumbnail ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="h-8 rounded-full px-3 text-xs"
+                              onClick={() =>
+                                setFormState((prev) => ({
+                                  ...prev,
+                                  thumbnail: "",
+                                  thumbnailPositionX: 50,
+                                  thumbnailPositionY: 50,
+                                }))
+                              }
+                            >
+                              Clear thumbnail
+                            </Button>
+                          ) : null}
+                        </div>
+                        {formState.thumbnail ? (
+                          <>
+                            <div className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+                              <img
+                                src={formState.thumbnail}
+                                alt="Course thumbnail preview"
+                                className="h-36 w-full object-cover"
+                                style={{
+                                  objectPosition: `${formState.thumbnailPositionX}% ${formState.thumbnailPositionY}%`,
+                                }}
+                              />
+                            </div>
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>Horizontal focus</span>
+                                  <span>{formState.thumbnailPositionX}%</span>
+                                </div>
+                                <Input
+                                  type="range"
+                                  min={0}
+                                  max={100}
+                                  value={formState.thumbnailPositionX}
+                                  onChange={(event) =>
+                                    setFormState((prev) => ({
+                                      ...prev,
+                                      thumbnailPositionX: Number(event.target.value),
+                                    }))
+                                  }
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>Vertical focus</span>
+                                  <span>{formState.thumbnailPositionY}%</span>
+                                </div>
+                                <Input
+                                  type="range"
+                                  min={0}
+                                  max={100}
+                                  value={formState.thumbnailPositionY}
+                                  onChange={(event) =>
+                                    setFormState((prev) => ({
+                                      ...prev,
+                                      thumbnailPositionY: Number(event.target.value),
+                                    }))
+                                  }
+                                />
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="description" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          What should the course cover?
+                        </Label>
+                        <Textarea
+                          id="description"
+                          className="min-h-[120px] rounded-lg border-border/60 bg-background/90 shadow-sm shadow-black/5"
+                          value={formState.description}
+                          onChange={(event) => setFormState((prev) => ({ ...prev, description: event.target.value }))}
+                          placeholder="Include practical projects, checkpoints, and real-world examples."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 border-t border-border/60 bg-background/70 px-6 py-4 backdrop-blur-sm">
+                    <Button variant="ghost" className="rounded-full" onClick={() => setIsCreateOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      className="rounded-full bg-gradient-to-r from-primary via-purple-500 to-indigo-500 px-6 text-primary-foreground shadow-lg shadow-primary/30"
+                      onClick={handleCreateCourse}
+                      disabled={isCreating}
+                    >
+                      Generate with AI
+                    </Button>
+                  </div>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -351,7 +600,7 @@ export default function MyCourses() {
           </Card>
         </div>
 
-        <Card className="rounded-2xl border border-border/50 bg-white dark:bg-zinc-900 shadow-lg hover:shadow-xl transition-all duration-300">
+        <Card className="rounded-2xl border border-border/50 bg-card shadow-lg hover:shadow-xl transition-all duration-300">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Your Courses</CardTitle>
             <CardDescription>Pick a course and resume from the latest lesson.</CardDescription>
@@ -367,79 +616,86 @@ export default function MyCourses() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {courses.map((course, idx) => {
-                  const { icon, bar } = getGradient(idx);
+                {courses.map((course) => {
                   return (
-                    <div
-                      key={course.id}
-                      className="flex flex-col justify-between h-full min-h-[260px] rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 bg-white dark:bg-zinc-900"
-                    >
-                      {/* Top Section (Header) - Fully Responsive */}
-                      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-start w-full">
-                        {/* Left: Icon, Title, Badges */}
-                        <div className="flex flex-col max-w-full sm:max-w-[75%]">
-                          <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${icon} flex items-center justify-center text-white shadow-md mb-2`}>
-                            <img src="/app_logo.png" alt="EduGenie Logo" className="h-full w-full object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
-                          </div>
-                          <div className="text-lg font-semibold leading-tight line-clamp-2 text-gray-900 dark:text-white">
-                            {course.name}
-                          </div>
-                          <div className="flex gap-2 mt-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getLevelBadge(course.level)}`}>{course.level}</span>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-gray-300">{course.duration}</span>
-                          </div>
-                          {/* Chapters/Lessons for mobile */}
-                          <span className="block sm:hidden text-xs text-muted-foreground font-semibold mt-2">
-                            {course.totalChapters} chapters • {course.totalLessons} lessons
-                          </span>
-                        </div>
-                        {/* Right: Chapters/Lessons, Buttons (stacked on mobile) */}
-                        <div className="flex flex-col items-stretch sm:items-end min-w-0 sm:min-w-[120px] flex-shrink-0 h-full justify-between">
-                          <span className="hidden sm:block text-xs text-muted-foreground font-semibold mb-3 whitespace-nowrap">
-                            {course.totalChapters} chapters • {course.totalLessons} lessons
-                          </span>
-                        </div>
-                      </div>
-                      {/* Description */}
-                      <div className="text-sm text-muted-foreground mt-3 line-clamp-2">
-                        {course.description}
-                      </div>
-                      {/* Progress Section */}
-                      <div className="mt-4">
-                        <div className="w-full h-2 bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full bg-gradient-to-r ${bar} transition-all duration-700`}
-                            style={{ width: `${course.completionPercentage}%` }}
+                    <div key={course.id} className="group overflow-hidden rounded-2xl border border-border/60 bg-card shadow-lg shadow-black/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                      <div className="relative aspect-[16/9] overflow-hidden">
+                        {course.thumbnail ? (
+                          <img
+                            src={course.thumbnail}
+                            alt={course.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            style={{
+                              objectPosition: `${course.thumbnailPositionX ?? 50}% ${course.thumbnailPositionY ?? 50}%`,
+                            }}
                           />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-500/70 via-indigo-500/60 to-cyan-500/60 text-4xl font-bold text-white/95">
+                            {getInitials(course.name) || "AI"}
+                          </div>
+                        )}
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent dark:from-black/70" />
+                        <div className="absolute left-3 top-3 flex items-center gap-2">
+                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${getLevelBadge(course.level)}`}>{course.level}</span>
+                          <span className="rounded-full border border-white/20 bg-black/50 px-2.5 py-1 text-[11px] font-semibold text-white/90">AI Generated</span>
+                        </div>
+                        <div className="absolute right-3 top-3">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70"
+                            disabled={deletingCourseId === course.id}
+                            onClick={() => setDeleteTarget(course)}
+                          >
+                            {deletingCourseId === course.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
                         </div>
                       </div>
-                      {/* Bottom Section + Buttons (stacked on mobile) */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-4 text-sm gap-2 sm:gap-0">
-                        <div className="flex justify-between items-center w-full sm:w-auto">
-                          <span className="font-bold text-primary">{course.completionPercentage}% Complete</span>
-                          <span className="text-muted-foreground ml-2">{course.completedLessons}/{course.totalLessons} lessons completed</span>
+
+                      <div className="flex h-full flex-col p-4">
+                        <h3 className="line-clamp-2 text-2xl font-bold leading-tight text-foreground">
+                          {course.name}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{course.description}</p>
+
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <div className="rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
+                            <p className="font-semibold">{course.totalChapters} Chapters</p>
+                          </div>
+                          <div className="rounded-xl border border-orange-500/35 bg-orange-500/10 px-3 py-2 text-xs text-orange-700 dark:text-orange-300">
+                            <p className="font-semibold">{course.totalLessons} Lessons</p>
+                          </div>
+                          <div className="rounded-xl border border-sky-500/35 bg-sky-500/10 px-3 py-2 text-xs text-sky-700 dark:text-sky-300">
+                            <p className="flex items-center gap-1 font-semibold"><Clock3 className="h-3.5 w-3.5" />{course.duration}</p>
+                          </div>
+                          <div className="rounded-xl border border-violet-500/35 bg-violet-500/10 px-3 py-2 text-xs text-violet-700 dark:text-violet-300">
+                            <p className="flex items-center gap-1 font-semibold"><BookOpen className="h-3.5 w-3.5" />{course.completedLessons}/{course.totalLessons}</p>
+                          </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+
+                        <div className="mt-4">
+                          <div className="mb-2 flex items-center justify-between text-xs">
+                            <span className="font-semibold text-muted-foreground">Progress</span>
+                            <span className="font-semibold text-cyan-600 dark:text-cyan-300">{course.completionPercentage}%</span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 transition-all duration-700"
+                              style={{ width: `${course.completionPercentage}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
                           <Button
-                            className={`w-full sm:w-auto rounded-full px-4 py-1.5 text-sm font-semibold shadow-md bg-gradient-to-r ${bar} text-white hover:opacity-90 transition`}
+                            className="w-full rounded-xl bg-primary/10 text-base font-semibold text-foreground shadow-none hover:bg-primary/20 dark:bg-white/15 dark:text-white dark:hover:bg-white/25"
                             onClick={() => {
                               const lessonQuery = course.resumeLessonId ? `?lesson=${course.resumeLessonId}` : "";
                               navigate(`/my-courses/${course.id}${lessonQuery}`);
                             }}
                           >
-                            Resume
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="w-full sm:w-auto rounded-full px-4 py-1.5 text-sm font-semibold border border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            disabled={deletingCourseId === course.id}
-                            onClick={() => setDeleteTarget(course)}
-                          >
-                            {deletingCourseId === course.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Delete"
-                            )}
+                            <PlayCircle className="mr-2 h-4 w-4" />
+                            View Course
                           </Button>
                         </div>
                       </div>

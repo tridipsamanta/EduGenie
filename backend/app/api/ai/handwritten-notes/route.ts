@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
     const items = await HandwrittenNote.collection
       .find({ userId })
       .sort({ createdAt: -1 })
-      .limit(50)
       .toArray();
 
     return NextResponse.json({ items });

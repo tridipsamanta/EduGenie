@@ -18,6 +18,15 @@ const createCourseSchema = z.object({
   level: z.enum(["Beginner", "Intermediate", "Advanced"]),
   duration: z.string().min(2),
   description: z.string().min(10),
+  thumbnail: z
+    .string()
+    .trim()
+    .refine((value) => value.length === 0 || /^https?:\/\//i.test(value) || /^data:image\//i.test(value), {
+      message: "Thumbnail must be a valid image URL or image data",
+    })
+    .optional(),
+  thumbnailPositionX: z.number().min(0).max(100).optional(),
+  thumbnailPositionY: z.number().min(0).max(100).optional(),
 });
 
 export async function GET() {
@@ -83,6 +92,9 @@ export async function GET() {
             level: course.level,
             duration: course.duration,
             description: course.description,
+            thumbnail: course.thumbnail ?? "",
+            thumbnailPositionX: course.thumbnailPositionX ?? 50,
+            thumbnailPositionY: course.thumbnailPositionY ?? 50,
             createdAt: course.createdAt,
             totalChapters: courseChapters.length,
             totalLessons,
@@ -142,6 +154,9 @@ export async function GET() {
             level: course.level,
             duration: course.duration,
             description: course.description,
+            thumbnail: course.thumbnail ?? "",
+            thumbnailPositionX: course.thumbnailPositionX ?? 50,
+            thumbnailPositionY: course.thumbnailPositionY ?? 50,
             createdAt: course.createdAt,
             totalChapters: courseChapters.length,
             totalLessons,
@@ -180,6 +195,9 @@ export async function POST(request: NextRequest) {
           level: payload.level,
           duration: payload.duration,
           description: payload.description,
+          thumbnail: payload.thumbnail || null,
+          thumbnailPositionX: Math.round(payload.thumbnailPositionX ?? 50),
+          thumbnailPositionY: Math.round(payload.thumbnailPositionY ?? 50),
           curriculum,
         })
         .returning();
@@ -238,6 +256,9 @@ export async function POST(request: NextRequest) {
         level: payload.level,
         duration: payload.duration,
         description: payload.description,
+        thumbnail: payload.thumbnail || "",
+        thumbnailPositionX: Math.round(payload.thumbnailPositionX ?? 50),
+        thumbnailPositionY: Math.round(payload.thumbnailPositionY ?? 50),
         curriculum,
       });
 
