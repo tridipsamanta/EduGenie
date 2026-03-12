@@ -33,6 +33,15 @@ temp/
 # OS
 .DS_Store
 
+# Generated frontend bundle copied for backend runtime
+backend/public/_redirects
+backend/public/app_logo.png
+backend/public/audio-playback-worklet.js
+backend/public/google.png
+backend/public/index.html
+backend/public/Robot/
+backend/public/assets/
+
 # Next build
 .next/
 backend/.next/

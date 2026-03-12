@@ -5,9 +5,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --port 5173 --strictPort",
-    "prebuild": "npm install",
-    "build": "vite build",
-    "start": "vite preview --host 0.0.0.0 --port 5001",
+    "prebuild": "npm install && cd backend && npm install && cd ..",
+    "build": "vite build && cp -r dist/public/* backend/public/ && cd backend && npm run build",
+    "start": "cd backend && npm start",
     "check": "tsc",
     "db:push": "drizzle-kit push"
   },
